@@ -1,0 +1,54 @@
+name: Qodana
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: # Specify your branches here
+      - main # The 'main' branch
+      - master # The 'master' branch
+      - 'releases/*' # The release branches
+
+jobs:
+  qodana:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      
+      - name: 'Set up Node.js'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16' # Specify the Node.js version your project requires
+      
+      - name: 'Install dependencies'
+        run: npm install
+      
+      - name: 'Run Qodana Scan'
+        uses: JetBrains/qodana-action@v2024.1
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+        with:
+          results-dir: 'qodana-results'
+          coverage: 'coverage/lcov-report/index.html'
+      
+      - name: 'Run tests and collect coverage'
+        run: npm run test:coverage
+      
+      - name: 'Upload coverage report'
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-report
+          path: coverage
+      
+      - name: 'Upload Qodana report'
+        uses: actions/upload-artifact@v2
+        with:
+          name: qodana-report
+          path: qodana-results
