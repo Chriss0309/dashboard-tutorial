@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 // __tests__/actions.test.ts
 import { createInvoice, State } from '@/app/lib/actions';
 import { sql } from '@vercel/postgres';
